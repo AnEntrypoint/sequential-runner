@@ -1,0 +1,25 @@
+{
+  "name": "tasker-sequential",
+  "description": "Gmail search tasker with sequential-flow for automatic pause/resume execution",
+  "type": "module",
+  "main": "comprehensive-gmail-search-cli.js",
+  "scripts": {
+    "start": "supabase start",
+    "serve": "supabase functions serve --no-verify-jwt tasks simple-stack-processor deno-executor wrappedgapi wrappedkeystore wrappedsupabase",
+    "gmail-search": "concurrently --kill-others \"npm run serve\" \"node comprehensive-gmail-search-cli.js\"",
+    "gmail-search:quick": "node comprehensive-gmail-search-cli.js --maxUsersPerDomain 2 --maxResultsPerUser 1",
+    "publish:task": "deno run -A taskcode/publish.ts --specific comprehensive-gmail-search",
+    "help": "node comprehensive-gmail-search-cli.js --help",
+    "test:gmail": "npm run gmail-search",
+    "test:gmail-simple": "npm run gmail-search:quick"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.58.0",
+    "dotenv": "^16.4.7",
+    "sequential-flow": "^1.0.0",
+    "sdk-http-wrapper": "file:../sdk-http-wrapper"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
