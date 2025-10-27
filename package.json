@@ -1,6 +1,7 @@
 {
   "name": "tasker-sequential",
-  "description": "Gmail search tasker with sequential-flow for automatic pause/resume execution",
+  "version": "1.0.0",
+  "description": "Deployment-agnostic task execution engine with automatic suspend/resume",
   "type": "module",
   "main": "comprehensive-gmail-search-cli.js",
   "scripts": {
