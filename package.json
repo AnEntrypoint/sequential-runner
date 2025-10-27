@@ -14,10 +14,10 @@
     "test:gmail-simple": "npm run gmail-search:quick"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.58.0",
     "dotenv": "^16.4.7",
     "sequential-flow": "^1.0.0",
-    "sdk-http-wrapper": "file:../sdk-http-wrapper"
+    "sdk-http-wrapper": "file:../sdk-http-wrapper",
+    "tasker-adaptor": "file:../tasker-adaptor"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
