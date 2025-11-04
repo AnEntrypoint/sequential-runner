@@ -13,6 +13,9 @@
  * @param {number} [input.maxUsersPerDomain=5] - Maximum users to process per domain
  * @returns {Object} Comprehensive search results with domain breakdown
  */
+
+import { nowISO } from 'tasker-utils/timestamps';
+
 module.exports = async function({ gmailSearchQuery = "", maxResultsPerUser = 10, maxUsersPerDomain = 500 }) {
   // CRITICAL FIX: Enforce Google API limits to prevent errors
   // Google Admin API limits: maxResults must be between 1 and 500
@@ -228,7 +231,7 @@ module.exports = async function({ gmailSearchQuery = "", maxResultsPerUser = 10,
     domainResults: searchResults,
     sampleMessages: sampleMessages.slice(0, 10), // Limit to first 10 sample messages
     executionInfo: {
-      completedAt: new Date().toISOString(),
+      completedAt: nowISO(),
       totalApiCalls: 1 + domains.length + totalUsers + Math.min(totalMessages, totalUsers),
       description: "Task completed using automatic suspend/resume on each external module call"
     }

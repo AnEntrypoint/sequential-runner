@@ -18,7 +18,8 @@
     "dotenv": "^16.4.7",
     "sequential-flow": "^1.0.0",
     "sdk-http-wrapper": "file:../sdk-http-wrapper",
-    "tasker-adaptor": "file:../tasker-adaptor"
+    "tasker-adaptor": "file:../tasker-adaptor",
+    "tasker-utils": "^1.0.0"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
