@@ -1,5 +1,5 @@
 {
-  "name": "tasker-sequential",
+  "name": "sequential-runner",
   "version": "1.0.0",
   "description": "Deployment-agnostic task execution engine with automatic suspend/resume",
   "type": "module",
@@ -17,9 +17,9 @@
   "dependencies": {
     "dotenv": "^16.4.7",
     "sequential-flow": "^1.0.0",
-    "sdk-http-wrapper": "file:../sdk-http-wrapper",
-    "tasker-adaptor": "file:../tasker-adaptor",
-    "tasker-utils": "^1.0.0"
+    "sequential-wrapper": "file:../sequential-wrapper",
+    "sequential-adaptor": "file:../sequential-adaptor",
+    "sequential-utils": "^1.0.0"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
