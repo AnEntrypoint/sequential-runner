@@ -3,6 +3,7 @@ const { TaskVFS } = require('./vfs.js');
 class HostTools {
   constructor(ecosystemPath, taskId, runId) {
     this.vfs = new TaskVFS(ecosystemPath, taskId, runId);
+    this.debug = process.env.DEBUG === '1';
     
     this.tools = {
       writeFile: this.writeFile.bind(this),
@@ -11,85 +12,218 @@ class HostTools {
       deleteFile: this.deleteFile.bind(this),
       fileExists: this.fileExists.bind(this),
       fileStat: this.fileStat.bind(this),
-      watchFile: this.watchFile.bind(this)
+      mkdir: this.mkdir.bind(this),
+      watchFile: this.watchFile.bind(this),
+      vfsTree: this.vfsTree.bind(this)
     };
   }
 
-  async writeFile(params) {
-    const { path, content, scope = 'run', encoding = 'utf8' } = params;
-    
-    if (!path) {
-      throw new Error('writeFile requires path parameter');
+  _validateParams(params, required) {
+    const missing = required.filter(key => !(key in params));
+    if (missing.length > 0) {
+      throw new Error(`Missing required parameters: ${missing.join(', ')}`);
     }
+  }
 
-    return await this.vfs.writeFile(path, content, scope, { encoding });
+  async writeFile(params) {
+    this._validateParams(params, ['path', 'content']);
+    
+    const { path, content, scope = 'run', encoding = 'utf8', append = false } = params;
+    
+    try {
+      return await this.vfs.writeFile(path, content, scope, { encoding, append });
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+        tool: 'writeFile',
+        params: { path, scope }
+      };
+    }
   }
 
   async readFile(params) {
+    this._validateParams(params, ['path']);
+    
     const { path, scope = 'auto', encoding = 'utf8' } = params;
     
-    if (!path) {
-      throw new Error('readFile requires path parameter');
+    try {
+      return await this.vfs.readFile(path, scope, { encoding });
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+        tool: 'readFile',
+        params: { path, scope }
+      };
     }
-
-    return await this.vfs.readFile(path, scope, { encoding });
   }
 
-  async listFiles(params) {
-    const { path = '/', scope = 'run' } = params;
-    return await this.vfs.listFiles(path, scope);
+  async listFiles(params = {}) {
+    const { path = '/', scope = 'run', recursive = false } = params;
+    
+    try {
+      const result = await this.vfs.listFiles(path, scope);
+      
+      if (recursive && result.directories.length > 0) {
+        for (const dir of result.directories) {
+          const subResult = await this.listFiles({ 
+            path: dir.path, 
+            scope, 
+            recursive: true 
+          });
+          if (subResult.success) {
+            result.files.push(...subResult.files);
+            result.directories.push(...subResult.directories);
+          }
+        }
+      }
+      
+      return { ...result, success: true };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+        tool: 'listFiles',
+        params: { path, scope }
+      };
+    }
   }
 
   async deleteFile(params) {
+    this._validateParams(params, ['path']);
+    
     const { path, scope = 'run' } = params;
     
-    if (!path) {
-      throw new Error('deleteFile requires path parameter');
+    try {
+      return await this.vfs.deleteFile(path, scope);
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+        tool: 'deleteFile',
+        params: { path, scope }
+      };
     }
-
-    return await this.vfs.deleteFile(path, scope);
   }
 
   async fileExists(params) {
+    this._validateParams(params, ['path']);
+    
     const { path, scope = 'run' } = params;
     
-    if (!path) {
-      throw new Error('fileExists requires path parameter');
+    try {
+      const exists = await this.vfs.exists(path, scope);
+      return { success: true, exists, path, scope };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+        tool: 'fileExists',
+        params: { path, scope }
+      };
     }
-
-    return await this.vfs.exists(path, scope);
   }
 
   async fileStat(params) {
+    this._validateParams(params, ['path']);
+    
     const { path, scope = 'run' } = params;
     
-    if (!path) {
-      throw new Error('fileStat requires path parameter');
+    try {
+      return await this.vfs.stat(path, scope);
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+        tool: 'fileStat',
+        params: { path, scope }
+      };
     }
+  }
 
-    return await this.vfs.stat(path, scope);
+  async mkdir(params) {
+    this._validateParams(params, ['path']);
+    
+    const { path, scope = 'run' } = params;
+    
+    try {
+      return await this.vfs.mkdir(path, scope);
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+        tool: 'mkdir',
+        params: { path, scope }
+      };
+    }
   }
 
   async watchFile(params) {
+    this._validateParams(params, ['path']);
+    
     const { path, scope = 'run' } = params;
     
-    if (!path) {
-      throw new Error('watchFile requires path parameter');
-    }
-
-    return new Promise((resolve) => {
-      this.vfs.watch(path, scope, (event) => {
-        resolve(event);
+    try {
+      return await new Promise((resolve) => {
+        this.vfs.watch(path, scope, (event) => {
+          resolve({ success: true, event, path, scope });
+        });
       });
-    });
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+        tool: 'watchFile',
+        params: { path, scope }
+      };
+    }
+  }
+
+  vfsTree() {
+    try {
+      const tree = this.vfs.getVFSTree();
+      return { success: true, tree };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+        tool: 'vfsTree'
+      };
+    }
   }
 
   getTool(toolName) {
+    if (!this.tools[toolName]) {
+      throw new Error(`Unknown host tool: ${toolName}. Available: ${Object.keys(this.tools).join(', ')}`);
+    }
     return this.tools[toolName];
   }
 
   getVFS() {
     return this.vfs;
+  }
+
+  getAvailableTools() {
+    return Object.keys(this.tools).map(name => ({
+      name,
+      description: this._getToolDescription(name)
+    }));
+  }
+
+  _getToolDescription(name) {
+    const descriptions = {
+      writeFile: 'Write content to a file (params: path, content, scope?, encoding?, append?)',
+      readFile: 'Read content from a file (params: path, scope?, encoding?)',
+      listFiles: 'List files in a directory (params: path?, scope?, recursive?)',
+      deleteFile: 'Delete a file or directory (params: path, scope?)',
+      fileExists: 'Check if a file exists (params: path, scope?)',
+      fileStat: 'Get file metadata (params: path, scope?)',
+      mkdir: 'Create a directory (params: path, scope?)',
+      watchFile: 'Watch a file for changes (params: path, scope?)',
+      vfsTree: 'Get VFS directory tree (no params)'
+    };
+    return descriptions[name] || 'No description available';
   }
 }
 
