@@ -3,25 +3,27 @@
   "version": "1.0.0",
   "description": "Deployment-agnostic task execution engine with automatic suspend/resume",
   "type": "module",
-  "main": "comprehensive-gmail-search-cli.js",
-  "scripts": {
-    "start": "supabase start",
-    "serve": "supabase functions serve --no-verify-jwt tasks simple-stack-processor deno-executor wrappedgapi wrappedkeystore wrappedsupabase",
-    "gmail-search": "concurrently --kill-others \"npm run serve\" \"node comprehensive-gmail-search-cli.js\"",
-    "gmail-search:quick": "node comprehensive-gmail-search-cli.js --maxUsersPerDomain 2 --maxResultsPerUser 1",
-    "publish:task": "deno run -A taskcode/publish.ts --specific comprehensive-gmail-search",
-    "help": "node comprehensive-gmail-search-cli.js --help",
-    "test:gmail": "npm run gmail-search",
-    "test:gmail-simple": "npm run gmail-search:quick"
+  "keywords": [
+    "sequential",
+    "runner",
+    "task-execution",
+    "workflow",
+    "state-machine"
+  ],
+  "author": "lanmower",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AnEntrypoint/sequential-runner.git"
   },
   "dependencies": {
     "dotenv": "^16.4.7",
     "sequential-flow": "^1.0.0",
-    "sequential-wrapper": "file:../sequential-wrapper",
-    "sequential-adaptor": "file:../sequential-adaptor",
+    "sequential-wrapper": "^2.0.0",
+    "sequential-adaptor": "^1.0.0",
     "sequential-utils": "^1.0.0"
   },
-  "devDependencies": {
-    "concurrently": "^8.2.2"
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
