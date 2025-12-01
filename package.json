@@ -1,8 +1,12 @@
 {
-  "name": "sequential-runner",
+  "name": "@sequential/sequential-runner",
   "version": "1.0.0",
   "description": "Deployment-agnostic task execution engine with automatic suspend/resume",
-  "type": "module",
+  "type": "commonjs",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
   "keywords": [
     "sequential",
     "runner",
@@ -18,9 +22,9 @@
   },
   "dependencies": {
     "dotenv": "^16.4.7",
-    "sequential-flow": "^1.0.0",
+    "@sequential/sequential-flow": "^1.0.0",
     "sequential-wrapper": "^2.0.0",
-    "sequential-adaptor": "^1.0.0",
+    "@sequential/sequential-adaptor": "^1.0.0",
     "sequential-utils": "^1.0.0"
   },
   "engines": {
