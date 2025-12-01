@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { EventEmitter } = require('events');
+const { validator } = require('@sequential/core-config');
 
 class TaskVFS extends EventEmitter {
   constructor(ecosystemPath, taskId, runId) {
@@ -8,7 +9,12 @@ class TaskVFS extends EventEmitter {
     this.ecosystemPath = ecosystemPath;
     this.taskId = taskId;
     this.runId = runId;
-    this.debug = process.env.DEBUG === '1';
+    try {
+      validator.validate(process.env, false);
+      this.debug = validator.get('DEBUG');
+    } catch {
+      this.debug = process.env.DEBUG === '1';
+    }
     
     this.scopes = {
       run: path.join(ecosystemPath, 'tasks', taskId, 'runs', runId, 'fs'),

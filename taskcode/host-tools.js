@@ -1,9 +1,15 @@
 const { TaskVFS } = require('./vfs.js');
+const { validator } = require('@sequential/core-config');
 
 class HostTools {
   constructor(ecosystemPath, taskId, runId) {
     this.vfs = new TaskVFS(ecosystemPath, taskId, runId);
-    this.debug = process.env.DEBUG === '1';
+    try {
+      validator.validate(process.env, false);
+      this.debug = validator.get('DEBUG');
+    } catch {
+      this.debug = process.env.DEBUG === '1';
+    }
     
     this.tools = {
       writeFile: this.writeFile.bind(this),
