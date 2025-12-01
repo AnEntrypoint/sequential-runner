@@ -27,9 +27,10 @@ class TaskVFS extends EventEmitter {
   }
 
   _ensureDirectories() {
-    Object.entries(this.scopes).forEach(([scopeName, dir]) => {
+    Object.entries(this.scopes).forEach(async ([scopeName, dir]) => {
       if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
+        const fsPromises = require('fs').promises;
+        await fsPromises.mkdir(dir, { recursive: true });
         this._log(`Created scope directory: ${scopeName}`, { dir });
       }
     });
