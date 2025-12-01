@@ -14,7 +14,7 @@
  * @returns {Object} Comprehensive search results with domain breakdown
  */
 
-import { nowISO } from 'sequential-utils/timestamps';
+import { nowISO } from '@sequential/sequential-utils/timestamps';
 
 module.exports = async function({ gmailSearchQuery = "", maxResultsPerUser = 10, maxUsersPerDomain = 500 }) {
   // CRITICAL FIX: Enforce Google API limits to prevent errors
