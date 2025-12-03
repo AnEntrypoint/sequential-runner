@@ -1,3 +1,4 @@
+import logger from '@sequential/sequential-logging';
 /**
  * Comprehensive Gmail Search across all Google Workspace domains and users
  *
@@ -22,22 +23,22 @@ module.exports = async function({ gmailSearchQuery = "", maxResultsPerUser = 10,
   maxUsersPerDomain = Math.min(Math.max(maxUsersPerDomain, 1), 500);
   maxResultsPerUser = Math.min(Math.max(maxResultsPerUser, 1), 100); // Gmail API limit
   
-  console.log('🚀 Starting comprehensive Gmail search');
-  console.log('📧 Search Query: "' + gmailSearchQuery + '"');
-  console.log('👥 Max Users Per Domain: ' + maxUsersPerDomain);
-  console.log('📋 Max Results Per User: ' + maxResultsPerUser);
+  logger.info('🚀 Starting comprehensive Gmail search');
+  logger.info('📧 Search Query: "' + gmailSearchQuery + '"');
+  logger.info('👥 Max Users Per Domain: ' + maxUsersPerDomain);
+  logger.info('📋 Max Results Per User: ' + maxResultsPerUser);
 
   // Step 1: Discover all Google Workspace domains (with suspend/resume)
-  console.log('🏢 Step 1: Discovering Google Workspace domains...');
+  logger.info('🏢 Step 1: Discovering Google Workspace domains...');
   
   const domainsResponse = await __callHostTool__("gapi", ["admin", "domains", "list"], [{
     customer: "my_customer"
   }]);
   
   if (!domainsResponse || !domainsResponse.domains || !Array.isArray(domainsResponse.domains)) {
-    console.error("❌ Failed to retrieve domains or invalid response format");
-    console.error("📊 Domains response type:", typeof domainsResponse);
-    console.error("📊 Domains response value:", JSON.stringify(domainsResponse));
+    logger.error("❌ Failed to retrieve domains or invalid response format");
+    logger.error("📊 Domains response type:", typeof domainsResponse);
+    logger.error("📊 Domains response value:", JSON.stringify(domainsResponse));
     return {
       success: false,
       error: "Failed to retrieve domains or invalid response format",
@@ -57,10 +58,10 @@ module.exports = async function({ gmailSearchQuery = "", maxResultsPerUser = 10,
     };
   });
   
-  console.log('✅ Found ' + domains.length + ' domains: ' + domains.map(function(d) { return d.domain; }).join(', '));
+  logger.info('✅ Found ' + domains.length + ' domains: ' + domains.map(function(d) { return d.domain; }).join(', '));
 
   // Step 2: For each domain, list users (with suspend/resume)
-  console.log('👥 Step 2: Listing users for each domain...');
+  logger.info('👥 Step 2: Listing users for each domain...');
   
   const allDomainUsers = [];
   
@@ -68,7 +69,7 @@ module.exports = async function({ gmailSearchQuery = "", maxResultsPerUser = 10,
     const domainInfo = domains[i];
     const domain = domainInfo.domain;
     
-    console.log('👥 Listing users for domain: ' + domain + ' (' + (i + 1) + '/' + domains.length + ')');
+    logger.info('👥 Listing users for domain: ' + domain + ' (' + (i + 1) + '/' + domains.length + ')');
     
     // CRITICAL: Don't catch TASK_SUSPENDED - let suspend/resume work
     const usersResponse = await __callHostTool__("gapi", ["admin", "users", "list"], [{
@@ -93,9 +94,9 @@ module.exports = async function({ gmailSearchQuery = "", maxResultsPerUser = 10,
         users: users
       });
 
-      console.log('✅ Found ' + users.length + ' users in domain ' + domain);
+      logger.info('✅ Found ' + users.length + ' users in domain ' + domain);
     } else {
-      console.log('⚠️ No users found in domain ' + domain + ' or invalid response');
+      logger.info('⚠️ No users found in domain ' + domain + ' or invalid response');
       allDomainUsers.push({
         domain: domain,
         users: []
@@ -103,10 +104,10 @@ module.exports = async function({ gmailSearchQuery = "", maxResultsPerUser = 10,
     }
   }
   
-  console.log('✅ User discovery completed for all domains');
+  logger.info('✅ User discovery completed for all domains');
 
   // Step 3: Search Gmail for each user (with suspend/resume)
-  console.log('📧 Step 3: Searching Gmail for each user...');
+  logger.info('📧 Step 3: Searching Gmail for each user...');
   const searchResults = [];
   let totalUsers = 0;
   let totalMessages = 0;
@@ -116,7 +117,7 @@ module.exports = async function({ gmailSearchQuery = "", maxResultsPerUser = 10,
     const domain = domainUserGroup.domain;
     const users = domainUserGroup.users || [];
     
-    console.log('📧 Searching Gmail for ' + users.length + ' users in domain ' + domain);
+    logger.info('📧 Searching Gmail for ' + users.length + ' users in domain ' + domain);
     
     const domainResult = {
       domain: domain,
@@ -130,7 +131,7 @@ module.exports = async function({ gmailSearchQuery = "", maxResultsPerUser = 10,
     
     for (let j = 0; j < usersToProcess.length; j++) {
       const user = usersToProcess[j];
-      console.log('📧 Searching Gmail for user: ' + user.email);
+      logger.info('📧 Searching Gmail for user: ' + user.email);
       totalUsers++;
       
       // CRITICAL: Don't catch TASK_SUSPENDED - let suspend/resume work
@@ -185,17 +186,17 @@ module.exports = async function({ gmailSearchQuery = "", maxResultsPerUser = 10,
         messages: messages
       });
 
-      console.log('✅ Found ' + messageCount + ' messages for ' + user.email);
+      logger.info('✅ Found ' + messageCount + ' messages for ' + user.email);
     }
     
     searchResults.push(domainResult);
-    console.log('✅ Gmail search completed for domain ' + domain + ': ' + domainResult.totalMessages + ' total messages');
+    logger.info('✅ Gmail search completed for domain ' + domain + ': ' + domainResult.totalMessages + ' total messages');
   }
   
-  console.log('✅ Gmail search completed for all users');
+  logger.info('✅ Gmail search completed for all users');
 
   // Step 4: Aggregate and format final results
-  console.log('📊 Step 4: Aggregating results...');
+  logger.info('📊 Step 4: Aggregating results...');
   
   const summary = {
     totalDomains: domains.length,
@@ -237,13 +238,13 @@ module.exports = async function({ gmailSearchQuery = "", maxResultsPerUser = 10,
     }
   };
 
-  console.log('🎉 Comprehensive Gmail search completed successfully!');
-  console.log('📊 Final Summary:');
-  console.log('   🏢 Domains: ' + summary.totalDomains);
-  console.log('   👥 Users: ' + summary.totalUsers);
-  console.log('   📧 Messages: ' + summary.totalMessagesFound);
-  console.log('   🔍 Query: "' + summary.searchQuery + '"');
-  console.log('   📡 Total API calls: ' + finalResult.executionInfo.totalApiCalls);
+  logger.info('🎉 Comprehensive Gmail search completed successfully!');
+  logger.info('📊 Final Summary:');
+  logger.info('   🏢 Domains: ' + summary.totalDomains);
+  logger.info('   👥 Users: ' + summary.totalUsers);
+  logger.info('   📧 Messages: ' + summary.totalMessagesFound);
+  logger.info('   🔍 Query: "' + summary.searchQuery + '"');
+  logger.info('   📡 Total API calls: ' + finalResult.executionInfo.totalApiCalls);
 
   return finalResult;
 };
