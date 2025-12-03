@@ -1,3 +1,5 @@
+import logger from '@sequential/sequential-logging';
+import { nowISO, createTimestamps, updateTimestamp } from '@sequential/timestamp-utilities';
 const fs = require('fs');
 const path = require('path');
 const { EventEmitter } = require('events');
@@ -28,7 +30,7 @@ class TaskVFS extends EventEmitter {
 
   _log(message, data = {}) {
     if (this.debug) {
-      console.log(`[TaskVFS] ${message}`, data);
+      logger.info(`[TaskVFS] ${message}`, data);
     }
   }
 
@@ -90,7 +92,7 @@ class TaskVFS extends EventEmitter {
         scope,
         fullPath,
         size: stat.size,
-        timestamp: new Date().toISOString()
+        timestamp: nowISO()
       };
 
       this.emit('file:write', event);
@@ -131,7 +133,7 @@ class TaskVFS extends EventEmitter {
           scope: s,
           fullPath,
           size: stat.size,
-          timestamp: new Date().toISOString()
+          timestamp: nowISO()
         };
 
         this.emit('file:read', event);
@@ -232,7 +234,7 @@ class TaskVFS extends EventEmitter {
         path: filepath,
         scope,
         fullPath,
-        timestamp: new Date().toISOString()
+        timestamp: nowISO()
       };
 
       this.emit('file:delete', event);
@@ -308,7 +310,7 @@ class TaskVFS extends EventEmitter {
           filename,
           path: filepath,
           scope,
-          timestamp: new Date().toISOString()
+          timestamp: nowISO()
         };
         this._log('File change detected', event);
         callback(event);
